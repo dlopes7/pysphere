@@ -10,7 +10,7 @@
 ident = "$Id$"
 
 import weakref
-from cStringIO import StringIO
+from io import StringIO
 from pysphere.ZSI.wstools.Namespaces import XMLNS, WSA, WSA_LIST, WSAW_LIST, WSRF_V1_2, WSRF
 from pysphere.ZSI.wstools.Utility import Collection, CollectionNS, DOM, ElementProxy, basejoin
 from pysphere.ZSI.wstools.XMLSchema import SchemaReader, WSDLToolsAdapter
@@ -352,7 +352,7 @@ class WSDL:
                 parent.appendChild(child)
                 child.setAttribute('targetNamespace', namespace)
                 attrsNS = imported._attrsNS
-                for attrkey in attrsNS.iterkeys():
+                for attrkey in attrsNS.keys():
                     if attrkey[0] == DOM.NS_XMLNS:
                         attr = attrsNS[attrkey].cloneNode(1)
                         child.setAttributeNode(attr)
@@ -708,7 +708,7 @@ class MessageRole(Element):
 
         ep = ElementProxy(None, node)
         epc = ep.createAppendElement(DOM.GetWSDLUri(wsdl.version), self.type)
-        if not isinstance(self.message, basestring) and len(self.message) == 2:
+        if not isinstance(self.message, str) and len(self.message) == 2:
             ns,name = self.message
             prefix = epc.getPrefix(ns)
             epc.setAttributeNS(None, 'message', '%s:%s' %(prefix,name))
@@ -1165,7 +1165,7 @@ class SoapBodyBinding:
                 )
         self.encodingStyle = encodingStyle
         self.namespace = namespace
-        if isinstance(parts,( str, unicode)):
+        if isinstance(parts,str):
             parts = parts.split()
         self.parts = parts
         self.use = use
@@ -1561,7 +1561,7 @@ def callInfoFromWSDL(port, name):
                 for name in body.parts:
                     parts.append(message.parts[name])
             else:
-                parts = message.parts.itervalues()
+                parts = iter(message.parts.values())
 
             for part in parts:
                 callinfo.addInParameter(
@@ -1575,10 +1575,10 @@ def callInfoFromWSDL(port, name):
             message = messages[operation.output.message]
         except KeyError:
             message = wsdl.addMessage(operation.output.message)
-            print "Warning:", \
+            print("Warning:", \
                   "Recieved message not defined in the WSDL schema.", \
-                  "Adding it."
-            print "Message:", operation.output.message
+                  "Adding it.")
+            print("Message:", operation.output.message)
          
         msgrole = opbinding.output
 
@@ -1608,7 +1608,7 @@ def callInfoFromWSDL(port, name):
                 for name in body.parts:
                     parts.append(message.parts[name])
             else:
-                parts = message.parts.itervalues()
+                parts = iter(message.parts.values())
 
             for part in parts:
                 callinfo.addOutParameter(

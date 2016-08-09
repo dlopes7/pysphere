@@ -8,7 +8,7 @@
 # FOR A PARTICULAR PURPOSE.
 
 import weakref, re, os, sys
-from ConfigParser import SafeConfigParser as ConfigParser
+from configparser import SafeConfigParser as ConfigParser
 
 from pysphere.ZSI import TC
 from pysphere.ZSI.client import _Binding
@@ -154,7 +154,7 @@ class ServiceProxy:
 
             from pysphere.ZSI.wstools import XMLSchema
             reader = XMLSchema.SchemaReader(base_url=location)
-            if xml is not None and isinstance(xml, basestring):
+            if xml is not None and isinstance(xml, str):
                 schema = reader.loadFromString(xml)
             elif xml is not None:
                 raise RuntimeError('Unsupported: XML must be string')
@@ -326,12 +326,12 @@ class MethodProxy:
         class _holder: pass
         def _remap(pyobj, **d):
             pyobj.__dict__ = d
-            for k,v in pyobj.__dict__.iteritems():
+            for k,v in pyobj.__dict__.items():
                 if not isinstance(v, dict): continue
                 pyobj.__dict__[k] = p = _holder()
                 _remap(p, **v)
 
-        for k,v in headers.iteritems():
+        for k,v in headers.items():
             h = [i for i in self.callinfo.inheaders if k in i.type][0]
             if h.element_type != 1:
                 raise RuntimeError('not implemented')

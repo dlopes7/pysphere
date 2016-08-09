@@ -268,9 +268,9 @@ class ParsedSoap:
         if not r:
             raise EvaluateException('No resolver for "' + uri + '"')
         try:
-            if isinstance(uri, unicode): uri = str(uri)
+            if isinstance(uri, str): uri = str(uri)
             retval = r(uri, tc, self, **keywords)
-        except Exception, e:
+        except Exception as e:
             raise EvaluateException("""Can't resolve '""" + uri + "' (" + \
                 str(e.__class__) + "): " + str(e))
         return retval
@@ -347,7 +347,7 @@ class ParsedSoap:
         '''
         d = {}
         lenofwhat = len(ofwhat)
-        c, crange = self.header_elements[:], range(len(self.header_elements))
+        c, crange = self.header_elements[:], list(range(len(self.header_elements)))
         for i,what in [ (i, ofwhat[i]) for i in range(lenofwhat) ]:
             if isinstance(what, AnyElement):
                 raise EvaluateException('not supporting <any> as child of soapenc:Header')

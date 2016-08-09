@@ -153,14 +153,14 @@ UNICODE_ENCODING = 'utf-8'
 
 ##
 ##  Not public constants.
-_inttypes = (int, long)
+_inttypes = (int, int)
 _floattypes = (float, )
 _seqtypes = (tuple, list)
-_stringtypes = ( str, unicode )
+_stringtypes = ( str, str )
 
 ##
 ##  Low-level DOM oriented utilities; useful for typecode implementors.
-_attrs = lambda E: (E.attributes and E.attributes.values()) or []
+_attrs = lambda E: (E.attributes and list(E.attributes.values())) or []
 _children = lambda E: E.childNodes or []
 _child_elements = lambda E: [ n for n in (E.childNodes or [])
                         if n.nodeType == _Node.ELEMENT_NODE ]
@@ -416,7 +416,7 @@ TC.RegisterType(TC.Apache.Map , minOccurs=0, nillable=False)
 ## TC.AnyElement wraps builtins so element name information can be saved
 ##
 from pysphere.ZSI import schema
-for i in [int,float,str,tuple,list,unicode]:
+for i in [int,float,str,tuple,list,str]:
     schema._GetPyobjWrapper.RegisterBuiltin(i)
 
 ## Load up Wrappers for builtin types

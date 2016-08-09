@@ -19,6 +19,7 @@ from pysphere.ZSI.wstools.logging import getLogger as _GetLogger
 from pysphere.ZSI.typeinterpreter import BaseTypeInterpreter
 from pysphere.ZSI.generate import WSISpec, WSInteropError, Wsdl2PythonError,\
     WsdlGeneratorError, WSDLFormatError
+import collections
 
 ID1 = '    '
 ID2 = 2*ID1
@@ -289,7 +290,7 @@ class ContainerBase:
         '''
         if self.func_aname is None:
             return name
-        assert callable(self.func_aname), \
+        assert isinstance(self.func_aname, collections.Callable), \
             'expecting callable method for attribute func_aname, not %s' %type(self.func_aname)
         f = self.func_aname
         return f(name)
@@ -547,7 +548,7 @@ class ServiceOperationContainer(ServiceContainerBase):
 
         if self.do_extended:
             wrap_str = ""
-            partsList = self.getOperation().getInputMessage().parts.itervalues()
+            partsList = iter(self.getOperation().getInputMessage().parts.values())
             try:
                 subNames = GetPartsSubNames(partsList, self._wsdl)
             except TypeError:
@@ -671,7 +672,7 @@ class ServiceOperationContainer(ServiceContainerBase):
             response.append('%sreturn %s(response)' %(ID2, self.outputName))
         else:
             if self.do_extended:
-                partsList = self.getOperation().getOutputMessage().parts.itervalues()
+                partsList = iter(self.getOperation().getOutputMessage().parts.values())
                 subNames = GetPartsSubNames(partsList, self._wsdl)
                 args = []
                 for pa in subNames:
@@ -1251,7 +1252,7 @@ class TypecodeContainerBase(TypesContainerBase):
         '''
         if self.func_aname is None:
             return name
-        assert callable(self.func_aname), \
+        assert isinstance(self.func_aname, collections.Callable), \
             'expecting callable method for attribute func_aname, not %s' %type(self.func_aname)
         f = self.func_aname
         return f(name)
@@ -2026,7 +2027,7 @@ class ElementSimpleTypeContainer(TypecodeContainerBase):
             self.substitutionGroup = tp.getAttribute('substitutionGroup')
             self.ns = tp.getTargetNamespace()
             qName = tp.getAttribute('type')
-        except Exception, ex:
+        except Exception as ex:
             raise Wsdl2PythonError('Error occured processing element: %s' %(
                 tp.getItemTrace()), *ex.args)
 
@@ -2040,7 +2041,7 @@ class ElementSimpleTypeContainer(TypecodeContainerBase):
 
         try:
             self.pyclass = BTI.get_pythontype(None, None, typeclass=self.sKlass)
-        except Exception, ex:
+        except Exception as ex:
             raise Wsdl2PythonError('Error occured processing element: %s' %(
                 tp.getItemTrace()), *ex.args)
 
@@ -2095,7 +2096,7 @@ class ElementLocalSimpleTypeContainer(TypecodeContainerBase):
         try:
             self.pyclass = BTI.get_pythontype(None, None,
                                               typeclass=self.sKlass)
-        except Exception, ex:
+        except Exception as ex:
             raise Wsdl2PythonError('Error occured processing element: %s' %(
                 self._item.getItemTrace()), *ex.args)
 
@@ -2168,7 +2169,7 @@ class ElementLocalComplexTypeContainer(TypecodeContainerBase, AttributeMixIn):
                        atypecode=self.attribute_typecode,
                        pyclass=self.getPyClass(),
                        ))
-        except Exception, ex:
+        except Exception as ex:
             args = ['Failure processing an element w/local complexType: %s' %(
                           self._item.getItemTrace())]
             args += ex.args
@@ -2326,7 +2327,7 @@ class ElementGlobalDefContainer(TypecodeContainerBase):
                        alias=NAD.getAlias(self.sKlassNS),
                        subclass=type_class_name(self.sKlass),
                        ))
-        except Exception, ex:
+        except Exception as ex:
             args = ['Failure processing an element w/local complexType: %s' %(
                           self._item.getItemTrace())]
             args += ex.args
@@ -2680,7 +2681,7 @@ class ComplexTypeContainer(TypecodeContainerBase, AttributeMixIn):
                 definition.append('%s%s' % (ID3, self.nsuriLogic()))
             definition.append('%sTClist = [%s]' % (ID3, type_code_list))    
             
-        except Exception, ex:
+        except Exception as ex:
             args = ["Failure processing %s" %self._item.getItemTrace()]
             args += ex.args
             ex.args = tuple(args)
@@ -2896,7 +2897,7 @@ class ComplexTypeSimpleContentContainer(SimpleTypeContainer, AttributeMixIn):
 
     def _setContent(self):
         # TODO: Add derivation logic to constructors.
-        if isinstance(self.sKlass, (types.ClassType, type)):
+        if isinstance(self.sKlass, type):
             definition = [
                 '%sclass %s(%s, TypeDefinition):' \
                 % (ID1, self.getClassName(), self.sKlass),

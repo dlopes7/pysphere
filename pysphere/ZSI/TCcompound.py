@@ -17,6 +17,7 @@ from pysphere.ZSI.wstools.Namespaces import SOAP
 from pysphere.ZSI.wstools.logging import getLogger as _GetLogger
 import re
 from copy import copy as _copy
+import collections
 
 _find_arrayoffset = lambda E: E.getAttributeNS(SOAP.ENC, "offset")
 _find_arrayposition = lambda E: E.getAttributeNS(SOAP.ENC, "position")
@@ -28,7 +29,7 @@ def _check_typecode_list(ofwhat, tcname):
     '''Check a list of typecodes for compliance with Struct
     requirements.'''
     for o in ofwhat:
-        if callable(o): #skip if _Mirage
+        if isinstance(o, collections.Callable): #skip if _Mirage
             continue
         if not isinstance(o, TypeCode):
             raise TypeError(
@@ -159,7 +160,7 @@ class ComplexType(TypeCode):
             # element declaration is initialized with a tag.
             try:
                 pyobj = self.pyclass()
-            except Exception, e:
+            except Exception as e:
                 raise TypeError("Constructing element (%s,%s) with pyclass(%s), %s" \
                     %(self.nspname, self.pname, self.pyclass.__name__, str(e)))
         else:
@@ -176,7 +177,7 @@ class ComplexType(TypeCode):
             setattr(pyobj, self.mixed_aname, self.simple_value(elt,ps, mixed=True))
 
         # Clone list of kids (we null it out as we process)
-        c, crange = c[:], range(len(c))
+        c, crange = c[:], list(range(len(c)))
         # Loop over all items we're expecting
 
         for j,c_elt in [ (j, c[j]) for j in crange if c[j] ]:
@@ -184,7 +185,7 @@ class ComplexType(TypeCode):
             for i,what in [ (i, self.ofwhat[i]) for i in range(len(self.ofwhat)) ]:
 
                 # retrieve typecode if it is hidden
-                if callable(what): what = what()
+                if isinstance(what, collections.Callable): what = what()
 
                 # Loop over all available kids
                 # if debug:
@@ -337,7 +338,7 @@ class ComplexType(TypeCode):
             what = self.ofwhat[indx]
 
             # retrieve typecode if hidden
-            if callable(what): what = what()
+            if isinstance(what, collections.Callable): what = what()
 
             if debug:
                 self.logger.debug('serialize what -- %s',

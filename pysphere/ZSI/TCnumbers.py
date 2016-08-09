@@ -62,7 +62,7 @@ class Ilong(Integer):
     '''
     type = (SCHEMA.XSD3, "long")
     parselist = [(None, "long")]
-    seriallist = [ long ]
+    seriallist = [ int ]
 
 class InegativeInteger(Integer):
     '''Value less than zero.

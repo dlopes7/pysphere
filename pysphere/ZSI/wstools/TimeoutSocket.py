@@ -46,7 +46,7 @@ class TimeoutSocket:
             sock.connect(*addr)
             sock.setblocking(timeout != 0)
             return 1
-        except socket.error,why:
+        except socket.error as why:
             if not timeout:
                 raise
             sock.setblocking(1)
@@ -63,7 +63,7 @@ class TimeoutSocket:
                 try:
                     sock.connect(*addr)
                     return 1
-                except socket.error,why:
+                except socket.error as why:
                     if len(why.args) == 1:
                         code = 0
                     else:

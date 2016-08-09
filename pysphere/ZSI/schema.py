@@ -48,7 +48,7 @@ def _is_substitute_element(head, sub):
 
     # TODO: better way of representing element references.  Wrap them with
     # facets, and dereference when needed and delegate to..
-    print (head.nspname == ged.nspname and head.pname == ged.pname)
+    print((head.nspname == ged.nspname and head.pname == ged.pname))
     if head is ged or not (head.nspname == ged.nspname and head.pname == ged.pname):
         return False
 
@@ -181,7 +181,7 @@ class SchemaInstanceType(type):
     getElementDeclaration = classmethod(getElementDeclaration)
 
 
-class ElementDeclaration:
+class ElementDeclaration(metaclass=SchemaInstanceType):
     """Typecodes subclass to represent a Global Element Declaration by
     setting class variables schema and literal.
 
@@ -189,7 +189,6 @@ class ElementDeclaration:
     literal = NCName
     substitutionGroup -- GED reference of form, (namespaceURI,NCName)
     """
-    __metaclass__ = SchemaInstanceType
 
     def checkSubstitute(self, typecode):
         """If this is True, allow typecode to be substituted
@@ -241,19 +240,17 @@ class ElementDeclaration:
         return
 
 
-class LocalElementDeclaration:
+class LocalElementDeclaration(metaclass=SchemaInstanceType):
     """Typecodes subclass to represent a Local Element Declaration.
     """
-    __metaclass__ = SchemaInstanceType
 
 
-class TypeDefinition:
+class TypeDefinition(metaclass=SchemaInstanceType):
     """Typecodes subclass to represent a Global Type Definition by
     setting class variable type.
 
     type = (namespaceURI, NCName)
     """
-    __metaclass__ = SchemaInstanceType
 
     def getSubstituteType(self, elt, ps):
         """if xsi:type does not match the instance type attr,
@@ -384,7 +381,7 @@ class _GetPyobjWrapper:
         to TypeCode class serialmap and Re-RegisterType.  Provides
         Any serialzation of any instances of the Wrapper.
         """
-        for k,v in cls.types_dict.iteritems():
+        for k,v in cls.types_dict.items():
             what = Any.serialmap.get(k)
             if what is None: continue
             if v in what.__class__.seriallist: continue
@@ -406,7 +403,7 @@ class _GetPyobjWrapper:
         else:
             raise TypeError(
                'Expecting a built-in type in %s (got %s).' %(
-                d.keys(),type(pyobj)))
+                list(d.keys()),type(pyobj)))
 
         newobj = pyclass(pyobj)
         newobj.typecode = what
@@ -414,4 +411,4 @@ class _GetPyobjWrapper:
     WrapImmutable = classmethod(WrapImmutable)
 
 
-from TC import Any, RegisterType
+from .TC import Any, RegisterType

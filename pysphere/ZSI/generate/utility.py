@@ -126,7 +126,7 @@ def GetPartsSubNames(args, wsdl):
     toReturn = []
     for arg in args:
         argSubnames = []
-        for l in wsm.usedNamespaces.itervalues():
+        for l in wsm.usedNamespaces.values():
             for schema in l:
                 sd = SchemaDescription(do_extended=do_extended)
                 sd.fromSchema(schema)

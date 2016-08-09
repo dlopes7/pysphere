@@ -17,7 +17,7 @@ ident = "$Id$"
 import types, weakref, sys, warnings
 from pysphere.ZSI.wstools.Namespaces import SCHEMA, XMLNS, SOAP, APACHE
 from pysphere.ZSI.wstools.Utility import DOM, DOMException, Collection, SplitQName, basejoin
-from StringIO import StringIO
+from io import StringIO
 
 # If we have no threading, this should be a no-op
 from threading import RLock
@@ -61,7 +61,7 @@ class SchemaReader:
         """Add dictionary of imports to schema instance.
            schema -- XMLSchema instance
         """
-        for ns in schema.imports.iterkeys(): 
+        for ns in schema.imports.keys(): 
             if ns in self._imports:
                 schema.addImportSchema(self._imports[ns])
 
@@ -69,7 +69,7 @@ class SchemaReader:
         """Add dictionary of includes to schema instance.
            schema -- XMLSchema instance
         """
-        for schemaLocation in schema.includes.iterkeys(): 
+        for schemaLocation in schema.includes.keys(): 
             if schemaLocation in self._includes:
                 schema.addIncludeSchema(schemaLocation, self._imports[schemaLocation])
 
@@ -248,7 +248,7 @@ class DOMAdapter(DOMAdapterInterface):
 
     def setAttributeDictionary(self):
         self.__attributes = {}
-        for v in self.__node._attrs.itervalues():
+        for v in self.__node._attrs.values():
             self.__attributes[v.nodeName] = v.nodeValue
 
     def getAttributeDictionary(self):
@@ -303,7 +303,7 @@ class XMLBase:
         XMLBase.__rlock.acquire()
         XMLBase.__indent += 1
         tmp = "<" + str(self.__class__) + '>\n'
-        for k,v in self.__dict__.iteritems():
+        for k,v in self.__dict__.items():
             tmp += "%s* %s = %s\n" %(XMLBase.__indent*'  ', k, v)
         XMLBase.__indent -= 1 
         XMLBase.__rlock.release()
@@ -703,7 +703,7 @@ class XMLSchemaComponent(XMLBase, MarkerInterface):
                    with QName.
         """
         self.attributes = {XMLSchemaComponent.xmlns:{}}
-        for k,v in node.getAttributeDictionary().iteritems():
+        for k,v in node.getAttributeDictionary().items():
             prefix,value = SplitQName(k)
             if value == XMLSchemaComponent.xmlns:
                 self.attributes[value][prefix or XMLSchemaComponent.xmlns_key] = v
@@ -773,7 +773,7 @@ class XMLSchemaComponent(XMLBase, MarkerInterface):
                 raise SchemaError(
                     'class instance %s, missing required attribute %s'
                     %(self.__class__, a))
-        for a,v in self.attributes.iteritems():
+        for a,v in self.attributes.items():
             # attribute #other, ie. not in empty namespace
             if isinstance(v, dict):
                 continue
@@ -782,7 +782,7 @@ class XMLSchemaComponent(XMLBase, MarkerInterface):
             if a in (XMLSchemaComponent.xmlns, XMLNS.XML):
                 continue
             
-            if (a not in self.__class__.attributes.keys() and not 
+            if (a not in list(self.__class__.attributes.keys()) and not 
                 (self.isAttribute() and self.isReference())):
                 raise SchemaError('%s, unknown attribute(%s,%s)' 
                     %(self.getItemTrace(), a, self.attributes[a]))
@@ -1153,7 +1153,7 @@ class XMLSchema(XMLSchemaComponent):
                 self.setAttributes(pnode)
                 attributes.update(self.attributes)
                 self.setAttributes(node)
-                for k,v in attributes['xmlns'].iteritems():
+                for k,v in attributes['xmlns'].items():
                     if k not in self.attributes['xmlns']:
                         self.attributes['xmlns'][k] = v
             else:
@@ -1185,7 +1185,7 @@ class XMLSchema(XMLSchemaComponent):
                 for collection in ['imports','elements','types',
                                    'attr_decl','attr_groups','model_groups',
                                    'notations']:
-                    for k,v in getattr(schema,collection).iteritems():
+                    for k,v in getattr(schema,collection).items():
                         if k not in getattr(self,collection):
                             v._parent = weakref.ref(self)
                             getattr(self,collection)[k] = v
@@ -1204,19 +1204,19 @@ class XMLSchema(XMLSchemaComponent):
                     slocd[import_ns] = schema
                     try:
                         tp.loadSchema(schema)
-                    except NoSchemaLocationWarning, ex:
+                    except NoSchemaLocationWarning as ex:
                         # Dependency declaration, hopefully implementation
                         # is aware of this namespace (eg. SOAP,WSDL,?)
-                        print "IMPORT: ", import_ns
-                        print ex
+                        print("IMPORT: ", import_ns)
+                        print(ex)
                         del slocd[import_ns]
                         continue
-                    except SchemaError, ex:
+                    except SchemaError as ex:
                         #warnings.warn(\
                         #    '<import namespace="%s" schemaLocation=?>, %s'\
                         #    %(import_ns, 'failed to load schema instance')
                         #)
-                        print ex
+                        print(ex)
                         del slocd[import_ns]
                         class _LazyEvalImport(str):
                             '''Lazy evaluation of import, replace entry in self.imports.'''
@@ -1911,7 +1911,7 @@ class ElementDeclaration(XMLSchemaComponent,\
         parent = self
         while 1:
             nsdict = parent.attributes[XMLSchemaComponent.xmlns]
-            for v in nsdict.itervalues():
+            for v in nsdict.values():
                 if v not in SCHEMA.XSD_LIST: continue
                 return TypeDescriptionComponent((v, 'anyType'))
             
@@ -2432,7 +2432,7 @@ class ComplexType(XMLSchemaComponent,\
         m = self.getAttribute('mixed')
         if m == 0 or m == False:
             return False
-        if isinstance(m, basestring):
+        if isinstance(m, str):
             if m in ('false', '0'):
                 return False
             if m in ('true', '1'):
@@ -2557,7 +2557,7 @@ class ComplexType(XMLSchemaComponent,\
             m = self.getAttribute('mixed')
             if m == 0 or m == False:
                 return False
-            if isinstance(m, basestring):
+            if isinstance(m, str):
                 if m in ('false', '0'):
                     return False
                 if m in ('true', '1'):

@@ -5,11 +5,12 @@
 
 import pydoc, sys
 from pysphere.ZSI import TC
+import collections
 
 # If function.__name__ is read-only, fail
 def _x(): return
 try:
-    _x.func_name = '_y'
+    _x.__name__ = '_y'
 except:
     raise RuntimeError(
         'use python-2.4 or later, cannot set function names in python "%s"'
@@ -127,15 +128,13 @@ class pyclass_type(type):
         #
         if hasattr(typecode, 'attribute_typecode_dict'):
             attribute_typecode_dict = typecode.attribute_typecode_dict or {}
-            for key,what in attribute_typecode_dict.iteritems():
+            for key,what in attribute_typecode_dict.items():
                 get,_set = cls.__create_attr_functions_from_what(key, what)
                 if get.__name__ in classdict:
-                    raise AttributeError,\
-                        'attribute %s previously defined.' %get.__name__
+                    raise AttributeError('attribute %s previously defined.' %get.__name__)
 
                 if _set.__name__ in classdict:
-                    raise AttributeError,\
-                        'attribute %s previously defined.' %_set.__name__
+                    raise AttributeError('attribute %s previously defined.' %_set.__name__)
 
                 classdict[get.__name__] = get
                 classdict[_set.__name__] = _set
@@ -143,7 +142,7 @@ class pyclass_type(type):
         return type.__new__(cls,classname,bases,classdict)
 
     def __create_functions_from_what(what):
-        if not callable(what):
+        if not isinstance(what, collections.Callable):
             def get(self):
                 return getattr(self, what.aname)
 
@@ -162,7 +161,7 @@ class pyclass_type(type):
             if what.maxOccurs > 1:
                 def _set(self, value):
                     if not (value is None or hasattr(value, '__iter__')):
-                        raise TypeError, 'expecting an iterable instance'
+                        raise TypeError('expecting an iterable instance')
                     setattr(self, what().aname, value)
             else:
                 def _set(self, value):
@@ -172,7 +171,7 @@ class pyclass_type(type):
         # new factory function
         # if pyclass is None, skip
         #
-        if not callable(what) and getattr(what, 'pyclass', None) is None:
+        if not isinstance(what, collections.Callable) and getattr(what, 'pyclass', None) is None:
             new_func = None
         elif (isinstance(what, TC.ComplexType) or
             isinstance(what, TC.Array)):
@@ -182,7 +181,7 @@ class pyclass_type(type):
                 '''
                 return what.pyclass()
 
-        elif not callable(what):
+        elif not isinstance(what, collections.Callable):
 
             def new_func(self, value):
                 '''value -- initialize value
@@ -220,8 +219,8 @@ class pyclass_type(type):
         #    (NCNAME)-(letter U digit U "_")
         if new_func is not None:
             new_func.__name__ = 'new_%s' %what.pname
-        get.func_name = 'get_element_%s' %what.pname
-        _set.func_name = 'set_element_%s' %what.pname
+        get.__name__ = 'get_element_%s' %what.pname
+        _set.__name__ = 'set_element_%s' %what.pname
         return get,_set,new_func
     __create_functions_from_what = staticmethod(__create_functions_from_what)
 
@@ -260,7 +259,7 @@ class pyclass_type(type):
             '''
             return getattr(self, what.mixed_aname, None)
 
-        get.im_func = 'get_text'
+        get.__func__ = 'get_text'
 
         def _set(self, value):
             '''set text content.
@@ -268,7 +267,7 @@ class pyclass_type(type):
             '''
             setattr(self, what.mixed_aname, value)
 
-        get.im_func = 'set_text'
+        get.__func__ = 'set_text'
 
         return get,_set
     __create_text_functions_from_what = \

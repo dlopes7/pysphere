@@ -4,14 +4,14 @@
 '''
 
 from pysphere.ZSI import _child_elements, EvaluateException, TC
-import multifile, mimetools, urllib
-import cStringIO as StringIO
+import multifile, mimetools, urllib.request, urllib.parse, urllib.error
+import io as StringIO
 
 
 def Opaque(uri, tc, ps, **keywords):
     '''Resolve a URI and return its content as a string.
     '''
-    source = urllib.urlopen(uri, **keywords)
+    source = urllib.request.urlopen(uri, **keywords)
     enc = source.info().getencoding()
     if enc in ['7bit', '8bit', 'binary']: return source.read()
 
@@ -23,7 +23,7 @@ def Opaque(uri, tc, ps, **keywords):
 def XML(uri, tc, ps, **keywords):
     '''Resolve a URI and return its content as an XML DOM.
     '''
-    source = urllib.urlopen(uri, **keywords)
+    source = urllib.request.urlopen(uri, **keywords)
     enc = source.info().getencoding()
     if enc in ['7bit', '8bit', 'binary']:
         data = source
@@ -86,7 +86,7 @@ class MIMEResolver:
 
         mf = multifile.MultiFile(f, seekable)
         mf.push(boundary)
-        while mf.next():
+        while next(mf):
             head = mimetools.Message(mf)
             body = StringIO.StringIO()
             mimetools.decode(mf, body, head.getencoding())
@@ -122,7 +122,7 @@ class MIMEResolver:
     def Opaque(self, uri, tc, ps, **keywords):
         content = self.get(uri)
         if content: return content.getvalue()
-        if not self.next: raise EvaluateException("Unresolvable URI " + uri)
+        if not self.__next__: raise EvaluateException("Unresolvable URI " + uri)
         return self.next.Opaque(uri, tc, ps, **keywords)
 
     def XML(self, uri, tc, ps, **keywords):
@@ -130,7 +130,7 @@ class MIMEResolver:
         if content:
             dom = ps.readerclass().fromStream(content)
             return _child_elements(dom)[0]
-        if not self.next: raise EvaluateException("Unresolvable URI " + uri)
+        if not self.__next__: raise EvaluateException("Unresolvable URI " + uri)
         return self.next.XML(uri, tc, ps, **keywords)
 
     def Resolve(self, uri, tc, ps, **keywords):

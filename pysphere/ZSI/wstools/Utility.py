@@ -14,13 +14,13 @@
 
 ident = "$Id$"
 
-import sys, httplib, urllib, socket, weakref
+import sys, http.client, urllib.request, urllib.parse, urllib.error, socket, weakref
 from os.path import isfile
 from UserDict import UserDict
-from cStringIO import StringIO
+from io import StringIO
 from pysphere.ZSI.wstools.TimeoutSocket import TimeoutSocket
-from urlparse import urlparse
-from httplib import HTTPConnection, HTTPSConnection
+from urllib.parse import urlparse
+from http.client import HTTPConnection, HTTPSConnection
 from exceptions import Exception
 
 
@@ -138,7 +138,7 @@ class TimeoutHTTPS(HTTPSConnection):
         sock.connect((self.host, self.port))
         realsock = getattr(sock.sock, '_sock', sock.sock)
         ssl = socket.ssl(realsock, self.key_file, self.cert_file)
-        self.sock = httplib.FakeSocket(sock, ssl)
+        self.sock = http.client.FakeSocket(sock, ssl)
 
 
 def urlopen(url, timeout=20, redirects=None):
@@ -147,7 +147,7 @@ def urlopen(url, timeout=20, redirects=None):
     scheme, host, path, params, query, frag = urlparse(url)
 
     if not scheme in ('http', 'https'):
-        return urllib.urlopen(url)
+        return urllib.request.urlopen(url)
     if params: path = '%s;%s' % (path, params)
     if query:  path = '%s?%s' % (path, query)
     if frag:   path = '%s#%s' % (path, frag)
@@ -180,7 +180,7 @@ def urlopen(url, timeout=20, redirects=None):
         response = conn.getresponse()
         if response.status != 100:
             break
-        conn._HTTPConnection__state = httplib._CS_REQ_SENT
+        conn._HTTPConnection__state = http.client._CS_REQ_SENT
         conn._HTTPConnection__response = None
 
     status = response.status
@@ -487,7 +487,7 @@ class DOM:
         if nsuri is None:
             result = node._attrs.get(name, None)
             if result is None:
-                for item in node._attrsNS.iterkeys():
+                for item in node._attrsNS.keys():
                     if item[1] == name:
                         result = node._attrsNS[item]
                         break
@@ -503,7 +503,7 @@ class DOM:
         """Return a Collection of all attributes 
         """
         attrs = {}
-        for k,v in node._attrs.iteritems():
+        for k,v in node._attrs.items():
             attrs[k] = v.value
         return attrs
 
@@ -637,7 +637,7 @@ class DOM:
 
         try:     
             result = self.loadDocument(f)
-        except Exception, ex:
+        except Exception as ex:
             f.close()
             raise ParseError(('Failed to load document %s' %url,) + ex.args)
         else:
@@ -750,7 +750,7 @@ class ElementProxy(Base, MessageInterface):
         Base.__init__(self)
         self._dom = DOM
         self.node = None
-        if isinstance(message, (str,unicode)):
+        if isinstance(message, str):
             self.loadFromString(message)
         elif isinstance(message, ElementProxy):
             self.node = message._getNode()
@@ -837,7 +837,7 @@ class ElementProxy(Base, MessageInterface):
         if nsuri == XMLNS.XML:
             return self._xml_prefix
         if node.nodeType == Node.ELEMENT_NODE:
-            for attr in node.attributes.values():
+            for attr in list(node.attributes.values()):
                 if attr.namespaceURI == XMLNS.BASE \
                    and nsuri == attr.value:
                         return attr.localName
@@ -931,7 +931,7 @@ class ElementProxy(Base, MessageInterface):
         self.node = document.childNodes[0]
 
         #set up reserved namespace attributes
-        for prefix,nsuri in self.reserved_ns.iteritems():
+        for prefix,nsuri in self.reserved_ns.items():
             self._setAttributeNS(namespaceURI=self._xmlns_nsuri, 
                 qualifiedName='%s:%s' %(self._xmlns_prefix,prefix), 
                 value=nsuri)
@@ -1182,8 +1182,8 @@ class CollectionNS(UserDict):
 
     def keys(self):
         keys = []
-        for tns in self.data.iterkeys():
-            keys.append([(tns,self._func(i)) for i in self.data[tns].itervalues()])
+        for tns in self.data.keys():
+            keys.append([(tns,self._func(i)) for i in self.data[tns].values()])
         return keys
 
     def items(self):
@@ -1241,7 +1241,7 @@ if 1:
             else:
                 node = self.buildDocument(None, localname)
 
-        for aname,value in attrs.iteritems():
+        for aname,value in attrs.items():
             a_uri, a_localname = aname
             if a_uri == xmlns_uri:
                 if a_localname == 'xmlns':
@@ -1297,7 +1297,7 @@ if 1:
         if node.nodeType == xml.dom.minidom.Node.ELEMENT_NODE:
             clone = newOwnerDocument.createElementNS(node.namespaceURI,
                                                      node.nodeName)
-            for attr in node.attributes.itervalues():
+            for attr in node.attributes.values():
                 clone.setAttributeNS(attr.namespaceURI, attr.nodeName, attr.value)
 
                 prefix, tag = xml.dom.minidom._nssplit(attr.nodeName)

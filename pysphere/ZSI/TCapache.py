@@ -69,7 +69,7 @@ class _Map(TypeCode):
             for k,v in pyobj:
                 self.tc.serialize(el, sw, {'key': k, 'value': v}, name='item')
         else:
-            for k,v in pyobj.iteritems():
+            for k,v in pyobj.items():
                 self.tc.serialize(el, sw, {'key': k, 'value': v}, name='item')
 
 class AttachmentRef(SimpleType):
