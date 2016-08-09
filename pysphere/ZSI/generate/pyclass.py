@@ -146,11 +146,15 @@ class pyclass_type(type):
             def get(self):
                 return getattr(self, what.aname)
 
-            if what.maxOccurs > 1:
-                def _set(self, value):
-                    if not (value is None or hasattr(value, '__iter__')):
-                        raise TypeError('expecting an iterable instance')
-                    setattr(self, what.aname, value)
+            if isinstance(what.maxOccurs, int):
+                if what.maxOccurs > 1:
+                    def _set(self, value):
+                        if not (value is None or hasattr(value, '__iter__')):
+                            raise TypeError('expecting an iterable instance')
+                        setattr(self, what.aname, value)
+                else:
+                    def _set(self, value):
+                        setattr(self, what.aname, value)
             else:
                 def _set(self, value):
                     setattr(self, what.aname, value)
@@ -158,14 +162,19 @@ class pyclass_type(type):
             def get(self):
                 return getattr(self, what().aname)
 
-            if what.maxOccurs > 1:
-                def _set(self, value):
-                    if not (value is None or hasattr(value, '__iter__')):
-                        raise TypeError('expecting an iterable instance')
-                    setattr(self, what().aname, value)
+            if isinstance(what.maxOccurs, int):
+                if what.maxOccurs > 1:
+                    def _set(self, value):
+                        if not (value is None or hasattr(value, '__iter__')):
+                            raise TypeError('expecting an iterable instance')
+                        setattr(self, what().aname, value)
+                else:
+                    def _set(self, value):
+                        setattr(self, what().aname, value)
             else:
                 def _set(self, value):
                     setattr(self, what().aname, value)
+            
 
         #
         # new factory function

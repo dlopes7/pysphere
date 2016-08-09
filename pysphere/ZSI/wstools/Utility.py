@@ -16,12 +16,11 @@ ident = "$Id$"
 
 import sys, http.client, urllib.request, urllib.parse, urllib.error, socket, weakref
 from os.path import isfile
-from UserDict import UserDict
+from collections import UserDict
 from io import StringIO
 from pysphere.ZSI.wstools.TimeoutSocket import TimeoutSocket
 from urllib.parse import urlparse
 from http.client import HTTPConnection, HTTPSConnection
-from exceptions import Exception
 
 
 def _get_idstr(pyobj):
@@ -70,9 +69,8 @@ def SplitQName(qname):
 # python2.3 urllib.basejoin does not remove current directory ./
 # from path and this causes problems on subsequent basejoins.
 #
-basejoin = urllib.basejoin
+basejoin = urllib.parse.urljoin
 if sys.version_info[0:2] < (2, 4, 0, 'final', 0)[0:2]:
-    #basejoin = lambda base,url: urllib.basejoin(base,url.lstrip('./'))
     token = './'
     def basejoin(base, url): 
         if url.startswith(token) is True:

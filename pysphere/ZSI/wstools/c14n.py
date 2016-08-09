@@ -49,11 +49,7 @@ or
 
 from xml.dom import Node
 
-try:
-    import io
-    StringIO = cStringIO
-except ImportError:
-    import io
+import io
 
 class XMLNS:
     BASE = "http://www.w3.org/2000/xmlns/"

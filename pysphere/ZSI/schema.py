@@ -369,7 +369,8 @@ class _GetPyobjWrapper:
         """register a builtin, create a new wrapper.
         """
         if arg in cls.types_dict:
-            raise RuntimeError('%s already registered' % arg)
+            pass
+            #raise RuntimeError('%s already registered' % arg)
         class _Wrapper(arg):
             'Wrapper for builtin %s\n%s' %(arg, cls.__doc__)
         _Wrapper.__name__ = '_%sWrapper' %arg.__name__

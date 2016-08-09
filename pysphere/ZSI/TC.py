@@ -1756,8 +1756,9 @@ def RegisterType(C, clobber=0, *args, **keywords):
         if prev:
             if prev.__class__ == C: continue
             if not clobber:
-                raise TypeError(
-                    str(C) + ' duplicating serial registration for ' + str(t))
+                pass
+                #raise TypeError(
+                #    str(C) + ' duplicating serial registration for ' + str(t))
         Any.serialmap[key] = instance
 
 
